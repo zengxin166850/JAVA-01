@@ -1,41 +1,25 @@
+package test;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 /**
- * Title: JvmClassLoader
- * Description: TODO
- * Copyright: Copyright (c) 2007
- * Company 北京华宇信息技术有限公司
- *
- * @author zengxin@thunisoft.com
- * @version 1.0
- * @date 2021/1/7 11:18
+ * 自定义加载Hello.xlass文件
  */
 public class MyClassLoader extends ClassLoader {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         MyClassLoader classLoader = new MyClassLoader();
         Class<?> hello = classLoader.findClass("Hello");
-        try {
-            Object o = hello.newInstance();
-            hello.getDeclaredMethod("hello").invoke(o);
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        Object o = hello.newInstance();
+        hello.getDeclaredMethod("hello").invoke(o);
     }
 
     @Override
     protected Class<?> findClass(String name) {
-        File file = new File(MyClassLoader.class.getResource("Hello.xlass").getPath());
+        File file = new File(MyClassLoader.class.getResource(name + ".xlass").getPath());
         int length = (int) file.length();
         byte[] data = new byte[length];
         try (FileInputStream fi = new FileInputStream(file)) {
