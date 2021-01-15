@@ -1,6 +1,23 @@
 学习笔记
+#### 字节码
+方法调用相关的指令：
+- `invokestatic`，顾名思义，这个指令用于调用某个类的静态方法，这也是方法调用指令中
+最快的一个。
+- `invokespecial`, **用来调用构造函数，但也可以用于调用同一个类中的 `private` 方法**, 以及可见的超类方法。
+- `invokevirtual`，如果是具体类型的目标对象，**`invokevirtual` 用于调用公共(`public`)，受保护和打包
+私有方法**。
+- `invokeinterface`，当要调用的方法属于某个接口时，将使用 `invokeinterface` 指令。
+- `invokedynamic`，`JDK7` 新增加的指令是实现“动态类型语言”（`Dynamically Typed
+Language`）支持而进行的改进之一，同时也是 `JDK 8` 以后支持的 `lambda`表达式的实现基础
 
-### 类加载器
+`dup` 指令的图形化解释：
+![image](https://note.youdao.com/yws/api/group/102464226/file/909403403?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
+
+** 小知识 **  
+ - `String` 的 `"＋"` 操作、`for（：）`等其实都是语法糖，字节码在编译之后前者会转换成 `StringBuilder.append` 操作，后者等价于 `for(i=0;i<x;i++)`;
+ - 代码里的常量字符串直接相加，如 `String str = "a"+"b"` 在编译成字节码后，已经优化为了 `String str = "ab"`
+
+#### 类加载器
 1. 启动类加载器 `bootstrapClassLoader`，加载 `jdk/lib` 核心类
 2. 扩展类加载器 `extClassLoader`，加载 `jdk/lib/ext` 扩展包下的类
 3. 应用类加载器 `ApplicationClassLoader` ，加载应用程序中自行编写的类
@@ -28,9 +45,9 @@ public class ClassLoaderTest {
                 }
             }
         };
-        Object o = classLoader.loadClass("demo.java0104.ClassLoaderTest").newInstance();
+        Object o = classLoader.loadClass("test.ClassLoaderTest").newInstance();
         System.out.println(o.getClass());
-        System.out.println(o instanceof demo.java0104.ClassLoaderTest);
+        System.out.println(o instanceof test.ClassLoaderTest);
     }
 }
 -----------------------------------
@@ -42,7 +59,7 @@ false
 
 当一个类收到类加载请求时，它首先不会自己去尝试加载这个类，而是把这个请求委派给父类加载器去完成。该机制可以保证同一个类不会被多次加载，保证唯一性。
 
-### GC
+#### GC
 垃圾回收，通常是指**堆和方法区**的垃圾回收策略，**堆(回收对象)** 占主要空间，**方法区（回收废弃常量和不再使用的类型）** 回收的空间和效率相对来说更低。
 
 **当一个对象被判断为 `GC roots` 引用不可达时，会被标记为可回收，由相应的 `GC` 回收算法进行具体的回收**。
@@ -54,11 +71,13 @@ false
 - 新版 `JDK` 的低延迟收集器 `ZGC` 、 `shenandoah` 。 号称最大停顿不超过 `10ms` ，适用于超大内存的垃圾回收， `20G+`
 
 
-### JVM参数
+#### JVM参数
+
 - `Xmx` 的默认值为机器内存的 `1/4`
 - `java8` 的默认收集器是 `paralell` 并行收集
 - 默认情况下 `jvm` 会开启自适应 `AdapterSizePolicy` (生产环境推荐开启)，动态的调整年轻代各区域大小。参数 `-XX:-UseAdaptiveSizePolicy` 可以关闭，`-XX:+UseAdaptiveSizePolicy` 表示开启
-- 未指定 `Xmn` 参数时，`eden：from:to` 的大小不会一开始就达到最大值，比例可能也不是准确的 `8：1：1`
+- `Xmx` 参数只包含了堆的内存，所以最好不要超过机器可用内存的 `60-80%` ，其余的栈，直接内存等也是需要内存空间的。
+
 ```
 CMS GC的 默认GC进程数是怎么来的？
 区分young区的parnew gc线程数和old区的cms线程数，分别为以下两参数：
