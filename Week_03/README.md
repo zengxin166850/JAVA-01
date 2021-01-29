@@ -30,15 +30,30 @@
 
 > `AWT` 为 开发 `java` 窗口应用的一套 `API` 框架
 
-一个单线程的 `reactor` 设计如下：
-
-![](https://note.youdao.com/yws/api/group/102464226/file/909738149?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
-
 **`java nio api` 中的相关概念：**
 
 - `channels`，通向文件、`socket` 的一系列**双向**通道
 - `buffers`，一个对象数组，可以被 `channel` 直接读取、写入
 - `selectors`，通知哪一组 `channel` 有 `IO` 事件
 - `selectionKeys`，管理 `IO` 事件的状态和绑定信息
+
+一个单线程的 `reactor` 设计如下：
+
+- 主进程为统一入口，负责将事件分发给acceptor、reader+process、writer
+- 代码上灵活的运用了 attachment，将事件分散处理。
+
+![](https://note.youdao.com/yws/api/group/102464226/file/909738149?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
+
+多线程设计改进思路1：
+
+- 将与 IO事件不相关的任务分开，使用 worker 线程池来完成 process 过程；
+
+  ![worker thread pool](https://note.youdao.com/yws/api/group/102464226/file/909841599?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
+
+多线程设计改进思路2：
+
+- 使用多个 Reactor，不同Reactor之间根据 CPU 和 IO 能力负载均衡；
+
+  ![](https://note.youdao.com/yws/api/group/102464226/file/909840618?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
 
 详细实现见文件 `Reactor.java`

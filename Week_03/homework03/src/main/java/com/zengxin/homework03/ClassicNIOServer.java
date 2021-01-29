@@ -9,23 +9,22 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
- * 使用java自带的api实现线程池server
+ * 使用java自带的api实现单线程server
  */
-public class ClassicNIOServer02 {
+@SuppressWarnings("Duplicates")
+public class ClassicNIOServer {
 
     public static void main(String[] args) throws IOException {
-        new ClassicNIOServer02(8805).listen();
+        new ClassicNIOServer(8804).listen();
     }
 
     private ServerSocketChannel server;
     private Selector selector;
 
 
-    ClassicNIOServer02(int port) throws IOException {
+    ClassicNIOServer(int port) throws IOException {
         server = ServerSocketChannel.open();
         selector = Selector.open();
         server.bind(new InetSocketAddress(port)).configureBlocking(false);
@@ -33,7 +32,6 @@ public class ClassicNIOServer02 {
     }
 
     void listen() throws IOException {
-        ExecutorService threadPool = Executors.newFixedThreadPool(8);
         while (true) {
             int select = selector.select();
             if (select == 0) {
@@ -42,13 +40,7 @@ public class ClassicNIOServer02 {
             Set<SelectionKey> selectionKeys = selector.selectedKeys();
             Iterator<SelectionKey> iterator = selectionKeys.iterator();
             while (iterator.hasNext()) {
-                threadPool.execute(() -> {
-                    try {
-                        process(iterator.next());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+                process(iterator.next());
             }
             selectionKeys.clear();
         }
@@ -71,7 +63,6 @@ public class ClassicNIOServer02 {
             buffer.flip();
             client.write(buffer);
             client.close();
-//            client.shutdownOutput()
         }
     }
 
