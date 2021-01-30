@@ -1,4 +1,4 @@
-package com.zengxin.homework03.netty;
+package com.zengxin.homework03.gateway.inbound;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -10,34 +10,42 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import lombok.Data;
 
-/**
- * http://localhost:8805/test
- * 通过okhttp模拟网关请求classicNIOServer：8804
- */
-public class NettyHttpServer {
-    public static void main(String[] args) throws InterruptedException {
+import java.util.List;
 
-        int port = 8805;
+@Data
+public class HttpInboundServer {
 
-        EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+    private int port;
+    
+    private List<String> proxyServers;
+
+    public HttpInboundServer(int port, List<String> proxyServers) {
+        this.port=port;
+        this.proxyServers = proxyServers;
+    }
+
+    public void run() throws Exception {
+
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(16);
 
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.option(ChannelOption.SO_BACKLOG, 128)
-                    .childOption(ChannelOption.TCP_NODELAY, true)
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    .option(ChannelOption.SO_KEEPALIVE, true)
+                    .option(ChannelOption.SO_REUSEADDR, true)
+                    .option(ChannelOption.SO_RCVBUF, 32 * 1024)
+                    .option(ChannelOption.SO_SNDBUF, 32 * 1024)
+                    .option(EpollChannelOption.SO_REUSEPORT, true)
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .childOption(ChannelOption.SO_REUSEADDR, true)
-                    .childOption(ChannelOption.SO_RCVBUF, 32 * 1024)
-                    .childOption(ChannelOption.SO_SNDBUF, 32 * 1024)
-                    .childOption(EpollChannelOption.SO_REUSEPORT, true)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+                    .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new HttpInitializer());
+                    .handler(new LoggingHandler(LogLevel.DEBUG))
+                    .childHandler(new HttpInboundInitializer(this.proxyServers));
 
             Channel ch = b.bind(port).sync().channel();
             System.out.println("开启netty http服务器，监听地址和端口为 http://127.0.0.1:" + port + '/');
@@ -46,7 +54,5 @@ public class NettyHttpServer {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
-
-
     }
 }

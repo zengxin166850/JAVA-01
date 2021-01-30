@@ -31,9 +31,10 @@ public class Handler02 implements Runnable {
             client.read(input);
             if (inputIsComplete()) {
                 process();
-                key.attach(new Sender());
-                key.interestOps(SelectionKey.OP_WRITE);
-                key.selector().wakeup();
+                client.close();
+//                key.attach(new Sender());
+//                key.interestOps(SelectionKey.OP_WRITE);
+//                key.selector().wakeup();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -64,8 +65,13 @@ public class Handler02 implements Runnable {
     }
 
     void process() throws IOException {
-        //逻辑处理
-        System.out.println("处理接收到的信息xxx");
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        buffer.put("HTTP/1.1 200 OK\r\n".getBytes());
+        buffer.put("Content-Type:text/htmL;charset=utf-8\r\n".getBytes());
+        buffer.put("\r\n".getBytes());
+        buffer.put("hello nio".getBytes());
+        buffer.flip();
+        client.write(buffer);
     }
 
 }

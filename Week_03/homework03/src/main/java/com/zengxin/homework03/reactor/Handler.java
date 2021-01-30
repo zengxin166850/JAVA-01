@@ -47,9 +47,9 @@ public class Handler implements Runnable {
         client.read(input);
         if (inputIsComplete()) {
             process();
+            client.close();
 //如果是双端通信，需取消注释，process之后不关闭socket
 //模拟http服务，则只需要accept或read即可
-//            client.close();
 //            state = SENDING;
 //            key.interestOps(SelectionKey.OP_WRITE);
         }

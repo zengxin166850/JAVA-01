@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * 写了写doug lea nio中的例子
+ * doug lea nio 单reactor例子
  */
 public class ReactorExample implements Runnable {
     public static void main(String[] args) throws IOException {
@@ -64,7 +64,9 @@ public class ReactorExample implements Runnable {
             try {
                 SocketChannel client = server.accept();
                 if (client != null) {
-                    new Handler(selector, client);
+//                    new Handler(selector, client);
+//                    new Handler02(selector, client);
+                    new Handler03(selector, client);
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();

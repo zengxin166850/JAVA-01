@@ -26,8 +26,10 @@ public class HttpServer03 {
             PrintWriter printwriter = new PrintWriter(socket.getOutputStream(), true);
             printwriter.println("HTTP/1.1 200 OK");
             printwriter.println("Content-Type:text/htmL;charset=utf-8");
+            String body = "hello,nio1";
+            printwriter.println("Content-Length:" + body.getBytes().length);
             printwriter.println();
-            printwriter.write("hello,nio");
+            printwriter.write(body);
             printwriter.close();
             socket.close();
         } catch (IOException e) {

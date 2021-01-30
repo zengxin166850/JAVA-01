@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 线程池处理 process 过程
+ * 线程池，worker thread pool处理 process 过程
  */
 public class Handler03 implements Runnable {
     final SocketChannel client;
@@ -29,7 +29,7 @@ public class Handler03 implements Runnable {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         try {
             client.read(input);
             if (inputIsComplete()) {
@@ -43,7 +43,7 @@ public class Handler03 implements Runnable {
 
     class Sender implements Runnable {
         @Override
-        public void run() {
+        public synchronized void run() {
             try {
                 client.write(output);
                 if (outputIsComplete()) {
@@ -64,19 +64,26 @@ public class Handler03 implements Runnable {
     }
 
     void process() throws IOException {
-        //逻辑处理
-        System.out.println("处理接收到的信息xxx");
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        buffer.put("HTTP/1.1 200 OK\r\n".getBytes());
+        buffer.put("Content-Type:text/htmL;charset=utf-8\r\n".getBytes());
+        buffer.put("\r\n".getBytes());
+        buffer.put("hello nio".getBytes());
+        buffer.flip();
+        client.write(buffer);
     }
 
     class Processor implements Runnable {
 
         @Override
-        public void run() {
+        public synchronized void run() {
             try {
+                //保证处理，修改状态操作的原子性
                 process();
-                key.attach(new Sender());
-                key.interestOps(SelectionKey.OP_WRITE);
-                System.out.println("正在处理...xxx");
+                client.close();
+//                key.attach(new Sender());
+//                key.interestOps(SelectionKey.OP_WRITE);
+//                System.out.println("正在处理...xxx");
             } catch (IOException e) {
                 e.printStackTrace();
             }

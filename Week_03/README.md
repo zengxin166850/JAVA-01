@@ -1,4 +1,4 @@
-### `Doug lea nio` 笔记整理
+### 1.`Doug lea nio` 读书笔记
 
 无论是简单的 `web` 服务，还是分布式系统，他们的基础网络服务是相通的，不外乎以下几个步骤：
 
@@ -39,21 +39,51 @@
 
 一个单线程的 `reactor` 设计如下：
 
-- 主进程为统一入口，负责将事件分发给acceptor、reader+process、writer
-- 代码上灵活的运用了 attachment，将事件分散处理。
+- 主进程为统一入口，reactor 根据事件驱动将任务转发给 handler；
+- handler 根据事件类型，采用多路复用方式，调用对应的 read 、write 方法。
 
 ![](https://note.youdao.com/yws/api/group/102464226/file/909738149?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
 
-多线程设计改进思路1：
 
-- 将与 IO事件不相关的任务分开，使用 worker 线程池来完成 process 过程；
+
+采用多个工作线程：
+
+- 进一步的将与 IO事件不相关的任务分离开，使用 worker 线程池来完成 process（decode、compute、encode） 过程；
+
+- 将工作线程分离之后，主进程的 reactor 就可以更快速的将任务进行分发，另外，使用线程池也易于调整和管理。
 
   ![worker thread pool](https://note.youdao.com/yws/api/group/102464226/file/909841599?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
 
-多线程设计改进思路2：
+多 reactor 方式：
 
-- 使用多个 Reactor，不同Reactor之间根据 CPU 和 IO 能力负载均衡；
+- 使用多个 Reactor，减小访问数量过大时，单个reactor的压力，不同Reactor之间可以根据 CPU 和 IO 能力进行负载均衡；
+- 可以尝试为每个 handler增加回调，添加队列（跨阶段传输buffer），以及通过 Future 异步获取结果等。
 
-  ![](https://note.youdao.com/yws/api/group/102464226/file/909840618?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
 
-详细实现见文件 `Reactor.java`
+
+
+
+![](https://note.youdao.com/yws/api/group/102464226/file/909840618?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
+
+
+
+### 2.第五课思维导图：
+
+![](https://note.youdao.com/yws/api/group/102464226/file/909865016?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
+
+### 3.第六课思维导图：
+
+![](https://note.youdao.com/yws/api/group/102464226/file/909867200?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
+
+#### 线程池工作流程：
+
+当提交一个新任务到线程池中，线程池的处理流程如下：
+
+- 判断线程是否已经达到核心线程数，如果当前池中线程数少于**核心线程数**，创建一个新线程来执行，否则进入下一个流程。
+- 核心线程数已满，判断**工作队列**是否已满，如果未满，则将任务放入队列中，如果队列已满，则进行下一个流程。
+- 工作队列已满，判断当前池中线程数是否已达到**最大线程数**，如果未达到，则创建新的线程并执行任务，如果已达到最大线程数，则任务会被**拒绝**，执行拒绝策略，同时提交任务失败。
+- 最后，当其他的线程执行完任务时，会进入空闲状态，如果队列中有任务，会取出来执行，当队列为空之后，超过**空闲存活时间**的线程会被回收。
+
+![](https://note.youdao.com/yws/api/group/102464226/file/909868153?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
+
+![](https://note.youdao.com/yws/api/group/102464226/file/909868170?method=download&inline=true&version=1&shareToken=97250695C9C44462BE5CF02A0E05E43E)
