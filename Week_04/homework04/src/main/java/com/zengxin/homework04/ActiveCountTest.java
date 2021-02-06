@@ -15,7 +15,7 @@ public class ActiveCountTest {
         ActiveCountTest test = new ActiveCountTest();
         new Thread(() -> {
             try {
-                Thread.sleep(2000);
+                Thread.sleep(200);
                 test.hello(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
