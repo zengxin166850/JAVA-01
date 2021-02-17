@@ -1,7 +1,7 @@
 package com.zengxin.homework0501.work41.inbound;
 
 
-import com.zengxin.homework0501.work41.filter.HeaderHttpRequestFilter;
+import com.zengxin.homework0501.work41.config.FilterAop;
 import com.zengxin.homework0501.work41.outbound.HttpOutboundHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,21 +20,20 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
     private ExecutorService inboundThreadPool;
     @Autowired
     private HttpOutboundHandler handler;
-    @Autowired
-    private HeaderHttpRequestFilter filter;
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
         ctx.flush();
     }
 
+    @FilterAop
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
 
             FullHttpRequest fullRequest = (FullHttpRequest) msg;
 
-            inboundThreadPool.submit(()->handler.handle(fullRequest, ctx, filter));
+            inboundThreadPool.submit(()->handler.handle(fullRequest, ctx,null));
 
         } catch (Exception e) {
             e.printStackTrace();

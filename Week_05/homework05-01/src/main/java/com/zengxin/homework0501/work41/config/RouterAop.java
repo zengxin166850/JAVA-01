@@ -1,4 +1,9 @@
 package com.zengxin.homework0501.work41.config;
 
-public class RouterAop {
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+public @interface RouterAop {
 }

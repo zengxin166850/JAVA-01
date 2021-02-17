@@ -1,9 +1,9 @@
 package com.zengxin.homework0501.work41.outbound;
 
 
-import com.zengxin.homework0501.work41.filter.HttpRequestFilter;
+import com.zengxin.homework0501.work41.config.FilterAop;
+import com.zengxin.homework0501.work41.config.RouterAop;
 import com.zengxin.homework0501.work41.filter.HttpResponseFilter;
-import com.zengxin.homework0501.work41.router.HttpEndpointRouter;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,12 +20,10 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -38,19 +36,13 @@ public class HttpOutboundHandler {
     @Autowired
     private ExecutorService outboundThreadPool;
 
-    @Value("${proxyServers}")
-    private List<String> backendUrls;
 
     @Autowired
     HttpResponseFilter headerHttpResponseFilter;
 
-    @Autowired
-    HttpEndpointRouter roundRobinHttpEndpointRouter;
-//    HttpEndpointRouter randomHttpEndpointRouter;
-
     public HttpOutboundHandler(List<String> backendUrls) {
 
-        this.backendUrls = backendUrls.stream().map(this::formatUrl).collect(Collectors.toList());
+
 
         int cores = Runtime.getRuntime().availableProcessors();
 
@@ -69,14 +61,10 @@ public class HttpOutboundHandler {
         httpclient.start();
     }
 
-    private String formatUrl(String backend) {
-        return backend.endsWith("/") ? backend.substring(0, backend.length() - 1) : backend;
-    }
 
-    public void handle(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx, HttpRequestFilter filter) {
-        String backendUrl = roundRobinHttpEndpointRouter.route(this.backendUrls);
-        final String url = backendUrl + fullRequest.uri();
-        filter.filter(fullRequest, ctx);
+
+    @RouterAop
+    public void handle(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx,String url) {
         outboundThreadPool.submit(() -> fetchGet(fullRequest, ctx, url));
     }
 
@@ -90,7 +78,10 @@ public class HttpOutboundHandler {
             @Override
             public void completed(final HttpResponse endpointResponse) {
                 try {
-                    handleResponse(inbound, ctx, endpointResponse);
+                    byte[] body = EntityUtils.toByteArray(endpointResponse.getEntity());
+                    FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(body));
+                    //outbound filter
+                    handleResponse(inbound, ctx, response);
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -111,17 +102,12 @@ public class HttpOutboundHandler {
         });
     }
 
-    private void handleResponse(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx, final HttpResponse endpointResponse) throws Exception {
-        FullHttpResponse response = null;
+    @FilterAop
+    private void handleResponse(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         try {
 
-            byte[] body = EntityUtils.toByteArray(endpointResponse.getEntity());
-
-            response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(body));
             response.headers().set("Content-Type", "application/json");
-            response.headers().setInt("Content-Length", Integer.parseInt(endpointResponse.getFirstHeader("Content-Length").getValue()));
-
-            headerHttpResponseFilter.filter(response);
+            response.headers().setInt("Content-Length", response.content().readableBytes());
 
         } catch (Exception e) {
             e.printStackTrace();
