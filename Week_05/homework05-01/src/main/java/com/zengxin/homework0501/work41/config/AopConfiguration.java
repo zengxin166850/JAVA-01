@@ -1,13 +1,11 @@
 package com.zengxin.homework0501.work41.config;
 
-import com.zengxin.homework0501.work41.router.HttpEndpointRouter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,9 +18,6 @@ public class AopConfiguration {
 
     @Value("${proxyServers}")
     private List<String> backendUrls;
-
-    @Autowired
-    HttpEndpointRouter roundRobinHttpEndpointRouter;
 
     /**
      * filter切面
@@ -49,13 +44,11 @@ public class AopConfiguration {
         String methodName = joinPoint.getSignature().getName();
         //inbound filter
         if ("channelRead".equals(methodName)) {
-//            System.out.println("开始inbound filter增强");
             FullHttpRequest fullRequest = (FullHttpRequest) args[1];
             fullRequest.headers().set("mao", "soul");
         }
         //outbound filter
         if ("handleResponse".equals(methodName)) {
-//            System.out.println("开始outbound filter增强");
             FullHttpResponse response = (FullHttpResponse) args[2];
             response.headers().set("kk", "java-1-nio");
         }

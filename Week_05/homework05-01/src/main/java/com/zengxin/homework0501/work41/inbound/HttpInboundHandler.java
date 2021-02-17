@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
+
 @Component
 @ChannelHandler.Sharable
 public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
@@ -33,8 +34,7 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
 
             FullHttpRequest fullRequest = (FullHttpRequest) msg;
             //线程池处理inbound
-            inboundThreadPool.submit(()->handler.handle(fullRequest, ctx,null));
-
+            inboundThreadPool.submit(() -> handler.handle(fullRequest, ctx, null));
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

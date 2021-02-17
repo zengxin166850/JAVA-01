@@ -22,28 +22,26 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+
 @Component
 public class HttpOutboundHandler {
 
     private CloseableHttpAsyncClient httpclient;
 
-    @Autowired
-    private ExecutorService outboundThreadPool;
-
+//    @Autowired
+//    ExecutorService outboundThreadPool;
+    ExecutorService outboundThreadPool = Executors.newFixedThreadPool(4);
 
     @Autowired
     SendService sendService;
 
-    public HttpOutboundHandler(List<String> backendUrls) {
-
-
-
+    public HttpOutboundHandler() {
         int cores = Runtime.getRuntime().availableProcessors();
 
         IOReactorConfig ioConfig = IOReactorConfig.custom()
@@ -61,15 +59,16 @@ public class HttpOutboundHandler {
         httpclient.start();
     }
 
-
-
     @RouterAop
-    public void handle(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx,String url) {
+    public void handle(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx, final String url) {
+        //将路由之后的 url 发送出去
+        sendService.send(url);
+        System.out.println("发送成功");
         //线程池处理outbound
         outboundThreadPool.submit(() -> fetchGet(fullRequest, ctx, url));
     }
 
-    private void fetchGet(final FullHttpRequest inbound, final ChannelHandlerContext ctx, final String url) {
+    public void fetchGet(final FullHttpRequest inbound, final ChannelHandlerContext ctx, final String url) {
         final HttpGet httpGet = new HttpGet(url);
 
         httpGet.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_KEEP_ALIVE);
