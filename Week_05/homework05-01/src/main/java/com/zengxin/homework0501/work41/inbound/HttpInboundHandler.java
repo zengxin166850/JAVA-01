@@ -32,7 +32,7 @@ public class HttpInboundHandler extends ChannelInboundHandlerAdapter {
         try {
 
             FullHttpRequest fullRequest = (FullHttpRequest) msg;
-
+            //线程池处理inbound
             inboundThreadPool.submit(()->handler.handle(fullRequest, ctx,null));
 
         } catch (Exception e) {

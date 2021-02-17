@@ -1,3 +1,9 @@
+spring:
+  activemq:
+    broker-url: tcp://localhost:61616
+    packages:
+      trust-all: true
+
 proxyServers: http://localhost:8801,http://localhost:8802,http://localhost:8803
 proxyPort: 8888
 # inbound 线程池
@@ -12,3 +18,4 @@ outbound:
   maxPoolSize: 8
   queueCapacity: 100
   keepAliveSeconds: 60
+

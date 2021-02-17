@@ -3,7 +3,7 @@ package com.zengxin.homework0501.work41.outbound;
 
 import com.zengxin.homework0501.work41.config.FilterAop;
 import com.zengxin.homework0501.work41.config.RouterAop;
-import com.zengxin.homework0501.work41.filter.HttpResponseFilter;
+import com.zengxin.homework0501.work41.jms.SendService;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -38,7 +38,7 @@ public class HttpOutboundHandler {
 
 
     @Autowired
-    HttpResponseFilter headerHttpResponseFilter;
+    SendService sendService;
 
     public HttpOutboundHandler(List<String> backendUrls) {
 
@@ -65,6 +65,7 @@ public class HttpOutboundHandler {
 
     @RouterAop
     public void handle(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx,String url) {
+        //线程池处理outbound
         outboundThreadPool.submit(() -> fetchGet(fullRequest, ctx, url));
     }
 
