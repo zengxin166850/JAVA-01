@@ -6,7 +6,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.http.protocol.HTTP;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import javax.jms.JMSException;
@@ -21,7 +20,6 @@ public class RequestListener implements MessageListener {
     //收到信息时的动作,只模拟了请求。
     // request 无法序列化后存入消息中，应该如何与发送方的request进行关联？
     @Override
-    @JmsListener(destination = "test.queue")
     public void onMessage(Message m) {
         ObjectMessage message = (ObjectMessage) m;
         try {
@@ -38,7 +36,7 @@ public class RequestListener implements MessageListener {
 
             try (Response endpointResponse = client.newCall(request).execute()) {
                 String result = endpointResponse.toString();
-                System.out.println("请求结果为：" + result);
+                System.out.println("response：" + result + " content：" + endpointResponse.body().string());
 //                byte[] body = endpointResponse.body().bytes();
 //                FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(body));
                 //增强

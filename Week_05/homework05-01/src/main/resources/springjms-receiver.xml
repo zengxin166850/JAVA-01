@@ -26,8 +26,6 @@
         <property name = "connectionFactory" ref="connectionFactory" />
     </bean>
 
-    <bean id="outboundHandler" class="com.zengxin.homework0501.work41.outbound.HttpOutboundHandler">
-    </bean>
 
     <jms:listener-container
             container-type="default"
