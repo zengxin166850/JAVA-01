@@ -1,6 +1,7 @@
 package com.zengxin.homework0501.work41.outbound;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.zengxin.homework0501.work41.config.FilterAop;
 import com.zengxin.homework0501.work41.config.RouterAop;
 import com.zengxin.homework0501.work41.jms.SendService;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -34,9 +34,8 @@ public class HttpOutboundHandler {
 
     private CloseableHttpAsyncClient httpclient;
 
-//    @Autowired
-//    ExecutorService outboundThreadPool;
-    ExecutorService outboundThreadPool = Executors.newFixedThreadPool(4);
+    @Autowired
+    ExecutorService outboundThreadPool;
 
     @Autowired
     SendService sendService;
@@ -62,8 +61,15 @@ public class HttpOutboundHandler {
     @RouterAop
     public void handle(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx, final String url) {
         //将路由之后的 url 发送出去
-        sendService.send(url);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("headers-mao", fullRequest.headers().get("mao"));
+        jsonObject.put("url", url);
+        //fullRequest 及 ChannelHandlerContext 不能序列化，内容会丢失
+//        jsonObject.put("ctx", ctx);
+//        jsonObject.put("isKeepAlive", HttpUtil.isKeepAlive(fullRequest));
+        sendService.send(jsonObject.toString());
         System.out.println("发送成功");
+
         //线程池处理outbound
         outboundThreadPool.submit(() -> fetchGet(fullRequest, ctx, url));
     }
@@ -103,12 +109,12 @@ public class HttpOutboundHandler {
     }
 
     @FilterAop
-    private void handleResponse(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
+    public void handleResponse(final FullHttpRequest fullRequest, final ChannelHandlerContext ctx, FullHttpResponse response) throws Exception {
         try {
 
             response.headers().set("Content-Type", "application/json");
             response.headers().setInt("Content-Length", response.content().readableBytes());
-
+            response.headers().set("kk", "java-1-nio");
         } catch (Exception e) {
             e.printStackTrace();
             response = new DefaultFullHttpResponse(HTTP_1_1, NO_CONTENT);
