@@ -7,8 +7,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-//不能使用spring-boot-maven-plugin插件进行打包
-//设置了student.enable=true时会启用
+/**
+ * 不能使用spring-boot-maven-plugin插件进行打包否则会找不到类
+ *
+ */
 @Configuration
 @ConditionalOnClass(Student.class)
 @ConditionalOnProperty(prefix = "student",matchIfMissing = true)
