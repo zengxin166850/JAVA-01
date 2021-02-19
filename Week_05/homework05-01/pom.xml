@@ -67,6 +67,13 @@
             <artifactId>okhttp</artifactId>
             <version>3.14.0</version>
         </dependency>
+
+        <!--bytebuddy-->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.7.1</version>
+        </dependency>
     </dependencies>
 
     <build>
