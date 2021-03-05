@@ -1,31 +1,13 @@
 ## 第 13 节课作业实践
 #### 2、（必做）按自己设计的表结构，插入100万订单模拟数据，测试不同方式的插入效率。
-- 代码实现见 `BatchInsertDemo`，执行时长约 `8s`;
 
-- 存储过程实现如下，时长约 42s ：
+- 使用单线程循环插入，需要10分钟以上；
+- 开启 `prepareStatement` ，每次批量提交，`values(1,1,1),(2,2,2)` 的方式需要 90s 左右；
+- 使用存储过程拼接 `values` 串再提交，存储过程实现如下，时长约 42s ：
+- 在连接串中添加`rewriteBatchedStatements=true`之后，再使用 `prepareStatemtn` ,执行时长约 `8s`;
+- 使用数据库连接池，同时开启批量参数后，约2s；
 
-```
-begin
-  declare i int;
-  declare insert_sql text;
-  set i=1;
-  set insert_sql = 'insert into t_order values';
-  while(i<=1000000)do
-    set insert_sql = CONCAT(insert_sql,"(",i,",",i,",",i,",",i,",'",NOW( ),"','",NOW( ),"')",",");
-    IF i%100=0 THEN 
-       set @insert_sql = LEFT(insert_sql,CHAR_LENGTH(insert_sql)-1);
-       PREPARE stmt FROM @insert_sql ;
-       EXECUTE stmt;
-       DEALLOCATE PREPARE stmt;
-       set insert_sql = 'insert into t_order values';
-    END IF;
-    set i=i+1;
-  end while;
-end
-```
 
-#### 6、（选做）尝试自己做一个 ID 生成器（可以模拟 Seq 或 Snowflake）。
- 分析注释见 `snowFlake`
 
 ### 思维导图
 
