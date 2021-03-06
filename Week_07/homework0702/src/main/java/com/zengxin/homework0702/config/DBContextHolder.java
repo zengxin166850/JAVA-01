@@ -5,6 +5,9 @@ import com.zengxin.homework0702.consts.DBTypeEnum;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DBContextHolder {
+    /**
+     * 计数器
+     */
     private static final AtomicInteger counter = new AtomicInteger(0);
 
     private DBContextHolder() {
@@ -33,15 +36,16 @@ public class DBContextHolder {
             counter.set(0);
         }
         if (index == 0) {
-            set(DBTypeEnum.SLAVE);
+            set(DBTypeEnum.SLAVE1);
             System.out.println("当前数据源为slave1");
         } else {
-            set(DBTypeEnum.SLAVE);
+            set(DBTypeEnum.SLAVE2);
             System.out.println("当前数据源为slave2");
         }
     }
 
     public static void reset() {
         contextHolder.remove();
+        System.out.println("已重置datasource");
     }
 }

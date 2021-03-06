@@ -23,17 +23,24 @@ public class DataSourceConfig {
         return DataSourceBuilder.create().build();
     }
 
-    @Bean(name = "slaveDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.slave")
-    public DataSource slaveDataSource() {
+    @Bean(name = "slaveDataSource1")
+    @ConfigurationProperties(prefix = "spring.datasource.slave1")
+    public DataSource slaveDataSource1() {
+        return DataSourceBuilder.create().build();
+    }
+
+    @Bean(name = "slaveDataSource2")
+    @ConfigurationProperties(prefix = "spring.datasource.slave2")
+    public DataSource slaveDataSource2() {
         return DataSourceBuilder.create().build();
     }
 
     @Bean
-    public DataSource myRoutingDataSource(DataSource masterDataSource, DataSource slaveDataSource) {
+    public DataSource myRoutingDataSource(DataSource masterDataSource, DataSource slaveDataSource1, DataSource slaveDataSource2) {
         Map<Object, Object> targetDataSources = new HashMap<>();
-        targetDataSources.put(DBTypeEnum.MASTER.getName(), masterDataSource);
-        targetDataSources.put(DBTypeEnum.SLAVE.getName(), slaveDataSource);
+        targetDataSources.put(DBTypeEnum.MASTER, masterDataSource);
+        targetDataSources.put(DBTypeEnum.SLAVE1, slaveDataSource1);
+        targetDataSources.put(DBTypeEnum.SLAVE2, slaveDataSource2);
         MyRoutingDataSource myRoutingDataSource = new MyRoutingDataSource();
         myRoutingDataSource.setDefaultTargetDataSource(masterDataSource);
         myRoutingDataSource.setTargetDataSources(targetDataSources);

@@ -1,15 +1,6 @@
 package com.zengxin.homework0702.consts;
 
 public enum DBTypeEnum {
-    MASTER("master"), SLAVE("slave");
+    MASTER(), SLAVE1(), SLAVE2();
 
-    private String name;
-
-    DBTypeEnum(String name) {
-
-    }
-
-    public String getName() {
-        return name;
-    }
 }
