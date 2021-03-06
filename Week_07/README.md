@@ -39,7 +39,7 @@ CREATE TABLE `t_order` (
 
 #### 3、（必做）读写分离-数据库框架版本2.0
 
-
+- 集成 shardingjdbc 后，insert、select 都必须写上字段名
 
 #### 4、（选做）读写分离-数据库中间件版本3.0
 

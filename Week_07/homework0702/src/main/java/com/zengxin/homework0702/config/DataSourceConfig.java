@@ -14,7 +14,7 @@ import java.util.Map;
  * 将 master、slave都给 RoutingDataSource管理
  */
 @Configuration
-public class DataSourceConfiguration {
+public class DataSourceConfig {
 
 
     @Bean(name = "masterDataSource")
