@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    master: # 数据源1
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3316/db
+      username: root
+      password: 123456
+    slave: # 数据源2
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3326/db
+      username: root
+      password: 123456
