@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    # 连接到 shardingsphere-proxy
+    url: jdbc:mysql://localhost:3307/master_slave_db?serverTimezone=UTC&useSSL=false
+    username: root
+    password: root
