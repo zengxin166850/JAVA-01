@@ -26,8 +26,8 @@ eureka:
  instance:
    prefer-ip-address: true
 
-inventory-service :
-   ribbon.NFLoadBalancerRuleClassName : com.netflix.loadbalancer.RandomRule
+ribbon:
+  NFLoadBalancerRuleClassName : com.netflix.loadbalancer.RandomRule
 
 logging:
     level:

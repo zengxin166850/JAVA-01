@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -70,6 +71,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @HmilyTCC(confirmMethod = "confirmOrderStatus", cancelMethod = "cancelOrderStatus")
+    @Transactional(rollbackFor = Exception.class)
     public String mockPaymentInventoryWithTryException(Order order) {
         LOGGER.debug("===========执行springcloud  mockPaymentInventoryWithTryException 扣减资金接口==========");
         updateOrderStatus(order, OrderStatusEnum.PAYING);
@@ -81,6 +83,7 @@ public class PaymentServiceImpl implements PaymentService {
     
     @Override
     @HmilyTCC(confirmMethod = "confirmOrderStatus", cancelMethod = "cancelOrderStatus")
+    @Transactional(rollbackFor = Exception.class)
     public String mockPaymentAccountWithTryException(Order order) {
         updateOrderStatus(order, OrderStatusEnum.PAYING);
         accountClient.mockWithTryException(buildAccountDTO(order));
@@ -89,6 +92,7 @@ public class PaymentServiceImpl implements PaymentService {
     
     @Override
     @HmilyTCC(confirmMethod = "confirmOrderStatus", cancelMethod = "cancelOrderStatus")
+    @Transactional(rollbackFor = Exception.class)
     public String mockPaymentInventoryWithTryTimeout(Order order) {
         LOGGER.debug("===========执行springcloud  mockPaymentInventoryWithTryTimeout 扣减资金接口==========");
         updateOrderStatus(order, OrderStatusEnum.PAYING);
@@ -99,6 +103,7 @@ public class PaymentServiceImpl implements PaymentService {
     
     @Override
     @HmilyTCC(confirmMethod = "confirmOrderStatus", cancelMethod = "cancelOrderStatus")
+    @Transactional(rollbackFor = Exception.class)
     public String mockPaymentAccountWithTryTimeout(Order order) {
         updateOrderStatus(order, OrderStatusEnum.PAYING);
         accountClient.mockWithTryTimeout(buildAccountDTO(order));
@@ -107,6 +112,7 @@ public class PaymentServiceImpl implements PaymentService {
     
     @Override
     @HmilyTCC(confirmMethod = "confirmOrderStatus", cancelMethod = "cancelOrderStatus")
+    @Transactional(rollbackFor = Exception.class)
     public String makePaymentWithNested(Order order) {
         updateOrderStatus(order, OrderStatusEnum.PAYING);
         final BigDecimal balance = accountClient.findByUserId(order.getUserId());
@@ -119,6 +125,7 @@ public class PaymentServiceImpl implements PaymentService {
     
     @Override
     @HmilyTCC(confirmMethod = "confirmOrderStatus", cancelMethod = "cancelOrderStatus")
+    @Transactional(rollbackFor = Exception.class)
     public String makePaymentWithNestedException(Order order) {
         updateOrderStatus(order, OrderStatusEnum.PAYING);
         final BigDecimal balance = accountClient.findByUserId(order.getUserId());
@@ -128,12 +135,13 @@ public class PaymentServiceImpl implements PaymentService {
         accountClient.paymentWithNestedException(buildAccountNestedDTO(order));
         return "success";
     }
-    
+
+    @Transactional(rollbackFor = Exception.class)
     public void confirmOrderStatus(Order order) {
         updateOrderStatus(order, OrderStatusEnum.PAY_SUCCESS);
         LOGGER.info("=========进行订单confirm操作完成================");
     }
-    
+    @Transactional(rollbackFor = Exception.class)
     public void cancelOrderStatus(Order order) {
         updateOrderStatus(order, OrderStatusEnum.PAY_FAIL);
         LOGGER.info("=========进行订单cancel操作完成================");

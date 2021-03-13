@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("accountService")
 public class AccountServiceImpl implements AccountService {
@@ -62,7 +63,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    @HmilyTCC(confirmMethod = "confirm", cancelMethod = "cancel")
+    @HmilyTCC(confirmMethod = "confirmNested", cancelMethod = "cancelNested")
     public boolean paymentWithNested(AccountNestedDTO accountNestedDTO) {
         accountMapper.update(buildAccountDTO(accountNestedDTO));
         inventoryClient.decrease(buildInventoryDTO(accountNestedDTO));
@@ -70,7 +71,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    @HmilyTCC(confirmMethod = "confirm", cancelMethod = "cancel")
+    @HmilyTCC(confirmMethod = "confirmNested", cancelMethod = "cancelNested")
     public boolean paymentWithNestedException(AccountNestedDTO accountNestedDTO) {
         accountMapper.update(buildAccountDTO(accountNestedDTO));
         inventoryClient.mockWithTryException(buildInventoryDTO(accountNestedDTO));
@@ -80,6 +81,24 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account findByUserId(String userId) {
         return accountMapper.findByUserId(userId);
+    }
+
+    /**
+     * Confirm nested
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean confirmNested(AccountNestedDTO accountNestedDTO) {
+        LOGGER.info("============confirmNested确认付款接口===============");
+        return accountMapper.confirm(buildAccountDTO(accountNestedDTO)) > 0;
+    }
+
+    /**
+     * Cancel nested
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean cancelNested(AccountNestedDTO accountNestedDTO) {
+        LOGGER.info("============cancelNested 执行取消付款接口===============");
+        return accountMapper.cancel(buildAccountDTO(accountNestedDTO)) > 0;
     }
 
     /**
