@@ -34,7 +34,7 @@ public interface InventoryService {
      * @return String string
      */
     @Hmily
-    String mockWithTryException(InventoryDTO inventoryDTO);
+    Boolean mockWithTryException(InventoryDTO inventoryDTO);
     
     /**
      * mock扣减库存超时
