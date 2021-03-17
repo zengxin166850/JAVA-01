@@ -7,15 +7,25 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class Rpcfx {
+    private static final String ROOT = "/";
+    /**
+     * 服务名-->url映射
+     */
+    private static final Map<String, List<String>> serviceUrlMapping = new HashMap<>();
 
     static {
         ParserConfig.getGlobalInstance().addAccept("com.zengxin");
@@ -23,23 +33,52 @@ public final class Rpcfx {
 
     public static <T, filters> T createFromRegistry(final Class<T> serviceClass, final String zkUrl, Router router, LoadBalancer loadBalance, Filter filter) {
 
-        // 加filte之一
+        // 加filte之一,例如判断url、serviceclass不合法？
 
         // curator Provider list from zk
         List<String> invokers = new ArrayList<>();
         // 1. 简单：从zk拿到服务提供的列表
+        try {
+            CuratorFramework client = CuratorClient.getClient(zkUrl);
+            invokers = client.getChildren().forPath(ROOT + serviceClass.getName());
+            serviceUrlMapping.put(serviceClass.getSimpleName(), invokers);
+            CuratorCacheListener listener = CuratorCacheListener.builder().forPathChildrenCache(ROOT + serviceClass.getName(), client, ((listenClient, event) -> {
+                switch (event.getType()) {
+                    case CHILD_ADDED:
+                    case CHILD_REMOVED:
+                    case CHILD_UPDATED:
+                        updateServices(listenClient, serviceClass);
+                        break;
+                    default:
+                        break;
+                }
+            })).build();
+            CuratorCache cache = CuratorCache.builder(client, ROOT).build();
+            cache.listenable().addListener(listener);
+            cache.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // 2. 挑战：监听zk的临时节点，根据事件更新这个list（注意，需要做个全局map保持每个服务的提供者List）
 
         List<String> urls = router.route(invokers);
 
         String url = loadBalance.select(urls); // router, loadbalance
-
+        String[] ipPort = url.split("_");
+        url = "http://" + ipPort[0] + ":" + ipPort[1];
         return (T) create(serviceClass, url, filter);
 
     }
 
-    public static <T> T create(final Class<T> serviceClass, final String url, Filter... filters) {
+    private static <T> void updateServices(CuratorFramework listenClient, Class<T> serviceClass) throws Exception {
+        List<String> newServices = listenClient.getChildren().forPath("/");
+        List<String> oldServices = serviceUrlMapping.get(serviceClass.getSimpleName());
+        oldServices.clear();
+        oldServices.addAll(newServices);
+    }
 
+    public static <T> T create(final Class<T> serviceClass, final String url, Filter... filters) {
+        //切换springAop？不需要invoke，在aop内执行http远程调用
         // 0. 替换动态代理 -> AOP
         return (T) Proxy.newProxyInstance(Rpcfx.class.getClassLoader(), new Class[]{serviceClass}, new RpcfxInvocationHandler(serviceClass, url, filters));
 
@@ -65,7 +104,9 @@ public final class Rpcfx {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] params) throws Throwable {
-
+            //获取到最新的url个数
+            List<String> urls = serviceUrlMapping.get(this.serviceClass.getSimpleName());
+            System.err.println("获取到" + serviceClass.getSimpleName() + "的服务个数：" + urls.size());
             // 加filter地方之二
             // mock == true, new Student("hubao");
 

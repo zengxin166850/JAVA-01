@@ -4,12 +4,15 @@ import com.zengxin.rpcfx.api.Filter;
 import com.zengxin.rpcfx.api.LoadBalancer;
 import com.zengxin.rpcfx.api.Router;
 import com.zengxin.rpcfx.api.RpcfxRequest;
+import com.zengxin.rpcfx.client.CuratorClient;
 import com.zengxin.rpcfx.client.Rpcfx;
 import com.zengxin.rpcfx.demo.api.Order;
 import com.zengxin.rpcfx.demo.api.OrderService;
 import com.zengxin.rpcfx.demo.api.User;
 import com.zengxin.rpcfx.demo.api.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.CreateMode;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.List;
@@ -22,23 +25,21 @@ public class RpcfxClientApplication {
 	// nexus, userserivce -> userdao -> user
 	//
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
-		// UserService service = new xxx();
-		// service.findById
-
-		UserService userService = Rpcfx.create(UserService.class, "http://localhost:8080/");
-		User user = userService.findById(1);
-		System.out.println("find user id=1 from server: " + user.getName());
-
-		OrderService orderService = Rpcfx.create(OrderService.class, "http://localhost:8080/");
-		Order order = orderService.findOrderById(1992129);
-		System.out.println(String.format("find order name=%s, amount=%f",order.getName(),order.getAmount()));
-
-		//
-		UserService userService2 = Rpcfx.createFromRegistry(UserService.class, "localhost:2181", new TagRouter(), new RandomLoadBalancer(), new CuicuiFilter());
-
-//		SpringApplication.run(RpcfxClientApplication.class, args);
+		//注册
+		UserService userService2 = Rpcfx.createFromRegistry(UserService.class, "localhost:2181", new TagRouter(), new RandomLoadBalancer(), new RequestFilter());
+		User user2 = userService2.findById(100);
+		System.err.printf("find user name=%s, amount=%s " ,user2.getId(),user2.getName());
+		OrderService orderService2 = Rpcfx.createFromRegistry(OrderService.class, "localhost:2181", new TagRouter(), new RandomLoadBalancer(), new RequestFilter());
+		Order order2 = orderService2.findOrderById(100);
+		System.err.printf("find order name=%s, amount=%f%n",order2.getName(),order2.getAmount());
+		CuratorFramework client = CuratorClient.getClient("localhost:2181");
+		//模拟注册新服务
+		client.create().withMode(CreateMode.EPHEMERAL).
+				forPath( "/" + UserService.class.getName() + "/localhost_8080", "provider".getBytes());
+		//第二次调用
+		User user3 = userService2.findById(100);
 	}
 
 	private static class TagRouter implements Router {
@@ -56,7 +57,7 @@ public class RpcfxClientApplication {
 	}
 
 	@Slf4j
-	private static class CuicuiFilter implements Filter {
+	private static class RequestFilter implements Filter {
 		@Override
 		public boolean filter(RpcfxRequest request) {
 			log.info("filter {} -> {}", this.getClass().getName(), request.toString());
