@@ -6,15 +6,14 @@ import com.zengxin.rpcfx.api.RpcfxRequest;
 import com.zengxin.rpcfx.api.RpcfxResolver;
 import com.zengxin.rpcfx.api.RpcfxResponse;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-public class RpcfxInvoker {
+public class RpcfxInvoker<T> {
 
-    private RpcfxResolver resolver;
+    private RpcfxResolver<T> resolver;
 
-    public RpcfxInvoker(RpcfxResolver resolver){
+    public RpcfxInvoker(RpcfxResolver<T> resolver){
         this.resolver = resolver;
     }
 
@@ -22,17 +21,17 @@ public class RpcfxInvoker {
         RpcfxResponse response = new RpcfxResponse();
         String serviceClass = request.getServiceClass();
 
-        // 作业1：改成泛型和反射
-        Object service = resolver.resolve(serviceClass);//this.applicationContext.getBean(serviceClass);
-
         try {
+            // 作业1：改成泛型和反射
+            Class<T> serviceClz = (Class<T>) Class.forName(serviceClass);
+            T service = resolver.resolve(serviceClz);
             Method method = resolveMethodFromClass(service.getClass(), request.getMethod());
             Object result = method.invoke(service, request.getParams()); // dubbo, fastjson,
             // 两次json序列化能否合并成一个
             response.setResult(JSON.toJSONString(result, SerializerFeature.WriteClassName));
             response.setStatus(true);
             return response;
-        } catch ( IllegalAccessException | InvocationTargetException e) {
+        } catch ( Exception e) {
 
             // 3.Xstream
 

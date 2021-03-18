@@ -26,22 +26,23 @@ public final class Rpcfx {
      * 服务名-->url映射
      */
     private static final Map<String, List<String>> serviceUrlMapping = new HashMap<>();
-
+    private Rpcfx(){}
     static {
         ParserConfig.getGlobalInstance().addAccept("com.zengxin");
     }
 
-    public static <T, filters> T createFromRegistry(final Class<T> serviceClass, final String zkUrl, Router router, LoadBalancer loadBalance, Filter filter) {
+    public static <T> T createFromRegistry(final Class<T> serviceClass, final String zkUrl, Router router, LoadBalancer loadBalance, Filter filter) {
 
         // 加filte之一,例如判断url、serviceclass不合法？
 
         // curator Provider list from zk
         List<String> invokers = new ArrayList<>();
-        // 1. 简单：从zk拿到服务提供的列表
         try {
+            // 1. 简单：从zk拿到服务提供的列表
             CuratorFramework client = CuratorClient.getClient(zkUrl);
             invokers = client.getChildren().forPath(ROOT + serviceClass.getName());
             serviceUrlMapping.put(serviceClass.getSimpleName(), invokers);
+            // 2. 挑战：监听zk的临时节点，根据事件更新这个list（注意，需要做个全局map保持每个服务的提供者List）
             CuratorCacheListener listener = CuratorCacheListener.builder().forPathChildrenCache(ROOT + serviceClass.getName(), client, ((listenClient, event) -> {
                 switch (event.getType()) {
                     case CHILD_ADDED:
@@ -59,17 +60,19 @@ public final class Rpcfx {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // 2. 挑战：监听zk的临时节点，根据事件更新这个list（注意，需要做个全局map保持每个服务的提供者List）
 
         List<String> urls = router.route(invokers);
 
         String url = loadBalance.select(urls); // router, loadbalance
         String[] ipPort = url.split("_");
         url = "http://" + ipPort[0] + ":" + ipPort[1];
-        return (T) create(serviceClass, url, filter);
+        return create(serviceClass, url, filter);
 
     }
 
+    /**
+     * 更新注册表中的服务
+     */
     private static <T> void updateServices(CuratorFramework listenClient, Class<T> serviceClass) throws Exception {
         List<String> newServices = listenClient.getChildren().forPath("/");
         List<String> oldServices = serviceUrlMapping.get(serviceClass.getSimpleName());

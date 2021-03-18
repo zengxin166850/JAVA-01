@@ -90,12 +90,12 @@ public class RpcfxServerApplication {
 	// annotation
 
 
-	@Bean(name = "com.zengxin.rpcfx.demo.api.UserService")
+	@Bean
 	public UserService createUserService(){
 		return new UserServiceImpl();
 	}
 
-	@Bean(name = "com.zengxin.rpcfx.demo.api.OrderService")
+	@Bean
 	public OrderService createOrderService(){
 		return new OrderServiceImpl();
 	}

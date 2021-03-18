@@ -4,7 +4,7 @@ import com.zengxin.rpcfx.api.RpcfxResolver;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-public class DemoResolver implements RpcfxResolver, ApplicationContextAware {
+public class DemoResolver<T> implements RpcfxResolver<T>, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
@@ -17,4 +17,10 @@ public class DemoResolver implements RpcfxResolver, ApplicationContextAware {
     public Object resolve(String serviceClass) {
         return this.applicationContext.getBean(serviceClass);
     }
+
+    @Override
+    public T resolve(Class<T> serviceClass) {
+        return this.applicationContext.getBean(serviceClass);
+    }
+
 }
