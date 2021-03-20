@@ -1,4 +1,4 @@
-package com.zengxin.rpcfx.client;
+package com.zengxin.rpcfx.netty.client;
 
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.zengxin.rpcfx.api.Filter;

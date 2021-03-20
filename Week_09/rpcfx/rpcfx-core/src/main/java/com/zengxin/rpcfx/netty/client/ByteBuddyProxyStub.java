@@ -1,4 +1,4 @@
-package com.zengxin.rpcfx.client;
+package com.zengxin.rpcfx.netty.client;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.implementation.InvocationHandlerAdapter;

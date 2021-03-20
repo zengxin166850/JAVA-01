@@ -1,4 +1,4 @@
-package com.zengxin.rpcfx.client;
+package com.zengxin.rpcfx.netty.client;
 
 import java.lang.reflect.Proxy;
 

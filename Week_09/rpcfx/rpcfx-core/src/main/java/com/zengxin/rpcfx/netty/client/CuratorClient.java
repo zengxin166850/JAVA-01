@@ -1,4 +1,4 @@
-package com.zengxin.rpcfx.client;
+package com.zengxin.rpcfx.netty.client;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;

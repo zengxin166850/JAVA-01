@@ -1,4 +1,4 @@
-package com.zengxin.rpcfx.client;
+package com.zengxin.rpcfx.netty.client;
 
 import net.sf.cglib.proxy.Enhancer;
 import org.slf4j.Logger;

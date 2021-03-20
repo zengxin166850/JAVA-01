@@ -2,7 +2,7 @@ package com.zengxin.rpcfx.demo.provider;
 
 import com.zengxin.rpcfx.annotation.RPCService;
 import com.zengxin.rpcfx.api.ServiceProviderDesc;
-import com.zengxin.rpcfx.client.CuratorClient;
+import com.zengxin.rpcfx.netty.client.CuratorClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
