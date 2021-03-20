@@ -2,6 +2,7 @@ package com.zengxin.rpcfx.server;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.zengxin.rpcfx.api.RpcfxException;
 import com.zengxin.rpcfx.api.RpcfxRequest;
 import com.zengxin.rpcfx.api.RpcfxResolver;
 import com.zengxin.rpcfx.api.RpcfxResponse;
@@ -13,7 +14,7 @@ public class RpcfxInvoker<T> {
 
     private RpcfxResolver<T> resolver;
 
-    public RpcfxInvoker(RpcfxResolver<T> resolver){
+    public RpcfxInvoker(RpcfxResolver<T> resolver) {
         this.resolver = resolver;
     }
 
@@ -31,14 +32,15 @@ public class RpcfxInvoker<T> {
             response.setResult(JSON.toJSONString(result, SerializerFeature.WriteClassName));
             response.setStatus(true);
             return response;
-        } catch ( Exception e) {
+        } catch (Exception e) {
 
             // 3.Xstream
 
             // 2.封装一个统一的RpcfxException
             // 客户端也需要判断异常
+            RpcfxException rpcfxException = new RpcfxException(e);
             e.printStackTrace();
-            response.setException(e);
+            response.setException(rpcfxException);
             response.setStatus(false);
             return response;
         }
