@@ -28,6 +28,10 @@ public class RpcNettyServer {
     private final Integer port;
     private Integer bossGroupNum = 1;
     private Integer workerGroupNum = 16;
+    /**
+     * 如果使用AplicationContextAware注入的话需要handler保持单例才行，
+     * 否则获取到的applicationContext会为空
+     */
     private final ApplicationContext applicationContext;
 
     public RpcNettyServer(Integer port, ApplicationContext context) {

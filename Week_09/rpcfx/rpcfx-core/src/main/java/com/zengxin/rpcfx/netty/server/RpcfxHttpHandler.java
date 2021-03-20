@@ -36,8 +36,8 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class RpcfxHttpHandler<T> extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(RpcfxHttpHandler.class);
-    //通过ApplicationContextAware初始化
-    private ApplicationContext applicationContext;
+
+    private final ApplicationContext applicationContext;
 
     RpcfxHttpHandler(ApplicationContext applicationContext){
         this.applicationContext = applicationContext;
@@ -69,6 +69,12 @@ public class RpcfxHttpHandler<T> extends ChannelInboundHandlerAdapter {
         ctx.close();
     }
 
+    /**
+     * 处理响应结果
+     * @param fullRequest request
+     * @param ctx netty上下文
+     * @param response 响应结果
+     */
     private void handleResponse(FullHttpRequest fullRequest, ChannelHandlerContext ctx, RpcfxResponse response) {
         FullHttpResponse fullHttpResponse = null;
         try {
