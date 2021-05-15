@@ -1,0 +1,13 @@
+package com.zengxin.myat;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class MyatApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}

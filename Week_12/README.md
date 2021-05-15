@@ -1,3 +1,16 @@
+# 第 23 课作业实践
+
+- [x] （必做）配置redis的主从复制，sentinel高可用，Cluster集群
+
+  [redis之主从、sentinel、cluster](./redis配置.md)
+
+- [ ] （选做）练习示例代码里下列类中的作业题：
+  08cache/redis/src/main/java/io/kimmking/cache/RedisApplication.java
+- [ ] （选做☆）练习redission的各种功能；
+- [ ] （选做☆☆）练习hazelcast的各种功能；
+- [ ] （选做☆☆☆）搭建hazelcast 3节点集群，写入100万数据到一个map，模拟和演
+  示高可用；
+
 # 第 24 课作业实践
 
 - [x] 1、（必做）搭建ActiveMQ服务，基于JMS，写代码分别实现对于queue和topic的消息
